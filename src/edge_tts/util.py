@@ -50,13 +50,9 @@ async def _run_tts(args: UtilArgs) -> None:
 
     # Handle automatic voice selection based on gender
     voice_to_use = args.voice
-    if is_gender_option(args.voice):
+    if is_gender_option(args.voice):        
         if args.text is None:
-            print(
-                f"Error: --voice {args.voice} requires --text or --file option",
-                file=sys.stderr,
-            )
-            sys.exit(1)
+            sys.exit(1)        
         voice_to_use = await select_voice_auto(args.text, args.voice)
 
     communicate = Communicate(
