@@ -11,6 +11,7 @@ from . import Communicate, SubMaker, list_voices
 from .constants import DEFAULT_VOICE
 from .data_classes import UtilArgs
 from .version import __version__
+from .auto_voice import is_gender_option, select_voice_auto
 
 
 async def _print_voices(*, proxy: Optional[str]) -> None:
@@ -47,9 +48,20 @@ async def _run_tts(args: UtilArgs) -> None:
         print("\nOperation canceled.", file=sys.stderr)
         return
 
+    # Handle automatic voice selection based on gender
+    voice_to_use = args.voice
+    if is_gender_option(args.voice):
+        if args.text is None:
+            print(
+                f"Error: --voice {args.voice} requires --text or --file option",
+                file=sys.stderr,
+            )
+            sys.exit(1)
+        voice_to_use = await select_voice_auto(args.text, args.voice)
+
     communicate = Communicate(
         args.text,
-        args.voice,
+        voice_to_use,
         rate=args.rate,
         volume=args.volume,
         pitch=args.pitch,
@@ -96,7 +108,8 @@ async def amain() -> None:
     parser.add_argument(
         "-v",
         "--voice",
-        help=f"voice for TTS. Default: {DEFAULT_VOICE}",
+        help=f"voice for TTS. Default: {DEFAULT_VOICE}. "
+        f"Use 'male' or 'female' for automatic language-based voice selection.",
         default=DEFAULT_VOICE,
     )
     group.add_argument(
